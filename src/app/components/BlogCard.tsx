@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchBlogs, Blog } from "@/app/services/blogService";
 import Image from "next/image";
@@ -8,6 +8,10 @@ import { toast } from "react-hot-toast";
 import Link from "next/link";
 
 const BlogCardGrid: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const postsPerPage = 5;
+
   const {
     data: blogs,
     isLoading,
@@ -19,6 +23,23 @@ const BlogCardGrid: React.FC = () => {
     retry: 2,
     refetchOnWindowFocus: false,
   });
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value.toLowerCase());
+  };
+
+  const filteredBlogs = blogs?.filter(
+    (blog) =>
+      blog.authorName.toLowerCase().includes(searchTerm) ||
+      blog.category.toLowerCase().includes(searchTerm) ||
+      (blog.subCategory && blog.subCategory.toLowerCase().includes(searchTerm))
+  );
+
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = filteredBlogs?.slice(indexOfFirstPost, indexOfLastPost);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   if (isLoading) {
     return (
@@ -54,20 +75,37 @@ const BlogCardGrid: React.FC = () => {
         </Link>
       </div>
 
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search by author, category, or sub-category"
+          value={searchTerm}
+          onChange={handleSearch}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {blogs?.map((blog) => (
+        {currentPosts?.map((blog) => (
           <div
             key={blog._id}
             className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-transform transform hover:-translate-y-1"
           >
             {blog.media?.length > 0 && (
-              <div className="relative h-48 w-full overflow-hidden">
-                <Image
-                  src={blog.media[0]}
-                  alt={blog.title}
-                  fill
-                  className="object-cover"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-4">
+                {blog.media.map((mediaUrl, index) => (
+                  <div
+                    key={index}
+                    className="relative h-48 w-full overflow-hidden"
+                  >
+                    <Image
+                      src={mediaUrl}
+                      alt={blog.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ))}
               </div>
             )}
 
@@ -132,6 +170,24 @@ const BlogCardGrid: React.FC = () => {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center mt-8">
+        <button
+          className="px-4 py-2 mx-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          onClick={() => paginate(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+        <button
+          className="px-4 py-2 mx-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          onClick={() => paginate(currentPage + 1)}
+          disabled={currentPage * postsPerPage >= (filteredBlogs?.length || 0)}
+        >
+          Next
+        </button>
       </div>
     </div>
   );

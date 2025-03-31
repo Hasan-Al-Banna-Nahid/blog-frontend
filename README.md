@@ -6,8 +6,8 @@ This is the frontend of a blog application built using **Next.js**, **TypeScript
 
 1. **Clone the Repository**  
   
-   git clone <repo-link>
-   cd <project-folder>
+   git clone repo-link
+   cd project-folder
    ```  
 2. **Install Dependencies**  
    Run the following command inside the project folder to install all required dependencies:  

@@ -5,7 +5,7 @@ This is the frontend of a blog application built using **Next.js**, **TypeScript
 ## How to Run the Project  
 
 1. **Clone the Repository**  
-  
+  ```bash
    git clone repo-link
    cd project-folder
    ```  
